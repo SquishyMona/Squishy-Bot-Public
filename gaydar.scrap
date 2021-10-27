@@ -1,0 +1,110 @@
+#Gay-Dar. This is a mess of code that I'll have to clean up later.
+    if message.content.startswith('$gaydar'):
+        client.gayPoints = [1, 2, 3, 4]
+        client.gayPoints = random.choice(client.gayPoints)
+        await message.channel.send("""Welcome to the Gay-dar! This test will determine if you are gay or not!
+This test is based on the original "Gay Detector" by Squishy.
+-----------------------------------------------------------------------------------------------
+WARNING!!! The following test has 100 percent accuracy. You must be prepared for your results.
+-----------------------------------------------------------------------------------------------
+If you would like to proceed, please enter 'y'. If not, send any other message to exit.""")
+        def check(m)
+        await client.wait_for('message', check=check)
+        response = message.content
+        if(response == "y"):
+            await message.channel.send("You will be asked a series of quesions. Please enter only 'y' for yes or 'n' for no\n")
+            await message.channel.send("Question 1: Do you like people of the same gender?")
+                
+            @client.event
+            async def on_message(message):
+                    if message.author == client.user:
+                        return
+                    q1 = message.content
+                    if(q1 == "y"):
+                        client.gayPoints += 5
+                    await message.channel.send("Question 2: Did you hesitate answering the last question?")
+                    
+                    @client.event
+                    async def on_message(message):
+                        if message.author == client.user:
+                            return
+                        q2 = message.content
+                        if(q2 == "y"):
+                            client.gayPoints += 1
+                        await message.channel.send("Question 3: Do you think it's gay to kiss the homies?")
+                        
+                        @client.event
+                        async def on_message(message):
+                            if message.author == client.user:
+                                return
+                            q3 = message.content
+                            if(q3 == "y"):
+                                client.gayPoints += 1
+                            await message.channel.send("Question 4: Do you play Super Smash Bros. Ultimate on the Nintendo Switch?")
+                            
+                            @client.event
+                            async def on_message(message):
+                                if message.author == client.user:
+                                    return
+                                q4 = message.content
+                                if(q4 == "y"):
+                                    client.gayPoints += 2
+                                await message.channel.send("Question 5: Do your friends often tell you that you look 'submissive and breedable'?")
+                                
+                                @client.event
+                                async def on_message(message):
+                                    if message.author == client.user:
+                                        return
+                                    q5 = message.content
+                                    if(q5 == "y"):
+                                        client.gayPoints += 3
+                                    await message.channel.send("Question 6: Are you afraid that this program will tell you that you are gay?")
+                                    
+                                    @client.event
+                                    async def on_message(message):
+                                        if message.author == client.user:
+                                            return
+                                        q6 = message.content
+                                        if(q6 == "y"):
+                                            client.gayPoints += 2
+                                        await message.channel.send("Question 7: Would you engage in sexual activity with the opposite gender")
+                                        
+                                        @client.event
+                                        async def on_message(message):
+                                            if message.author == client.user:
+                                                return
+                                            q7 = message.content
+                                            if(q7 == "n"):
+                                                client.gayPoints += 5
+                                            await message.channel.send("Question 8: Are you attracted to Dwayne 'The Rock' Johnson?")
+                                            
+                                            @client.event
+                                            async def on_message(message):
+                                                if message.author == client.user:
+                                                    return
+                                                q8 = message.content
+                                                if(q8 == "y"):
+                                                    client.gayPoints += 3
+                                                await message.channel.send("Question 9: Do you like Oreos?")
+                                                
+                                                @client.event
+                                                async def on_message(message):
+                                                    if message.author == client.user:
+                                                        return
+                                                    q9 = message.content
+                                                    if(q9 == "y"):
+                                                        client.gayPoints -= 3
+                                                    await message.channel.send("Question 10: Are you ready to find out if you are gay?")
+                                                    
+                                                    @client.event
+                                                    async def on_message(message):
+                                                        if message.author == client.user:
+                                                            return
+                                                        q10 = message.content
+                                                        if(q10 == "n"):
+                                                            client.gayPoints += 3
+                                                        if(client.gayPoints > 15):
+                                                            await message.channel.send("I have concluded that you are: GAY")
+                                                        else:
+                                                            await message.channel.send("I have concluded that you are: NOT GAY")
+                                                        return
