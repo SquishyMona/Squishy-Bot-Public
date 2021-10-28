@@ -14,6 +14,7 @@ bot = commands.Bot(command_prefix = '$')
 client.swearCounter = 0
 client.gayPoints = 0
 
+#Gets swear counter from txt file
 try:
     open("swears.txt", "x").close()
     client.swearCounter = 0
@@ -43,7 +44,7 @@ async def on_message(message):
     if message.author == client.user:
         return
     
-    #Sample commands w/ prefix
+    #Help command
     if message.content.startswith('$help'):
         await message.channel.send(
             """Hello! I am Squishy Bot! I'm still a work-in-progress, so if you find any issues, have any feature requests, or have any general feedback, please let Squishy know!\n
@@ -57,9 +58,11 @@ $swearcounter: Shows how many times this bot has caught someone saying a swear
             """
         )
     
+    #Hello command
     if message.content.startswith('$hello'):
         await message.channel.send('Hello!')
     
+    #Pat command (you'll probably need to change the file paths to match your system)
     if message.content.startswith("$pat"):
         receiver = message.content.split()[1]
         patGIF = [
@@ -74,12 +77,15 @@ $swearcounter: Shows how many times this bot has caught someone saying a swear
                     '/Users/squishy/Documents/GitHub/Squishy-Bot/GIFS/pat/stitch.gif', 
                  ]
         patGIF = random.choice(patGIF)
+        #This part should give you this message if you use the command on yourself but it doesnt work with @mentions
+        #for now. Idk how to get that to work so for now you'll have to type your server nickname (case sensitive)
         if(message.author.display_name == receiver):
             await message.channel.send('You patted yourself! You deserve it :)')
         else:
             await message.channel.send('%s patted %s!' %(message.author.display_name, receiver))
         await message.channel.send(file = discord.File(patGIF))
-        
+    
+    #Attack command    
     if message.content.startswith("$attack"):
         receiver = message.content.split()[1]
         hitGIF = [
@@ -93,12 +99,15 @@ $swearcounter: Shows how many times this bot has caught someone saying a swear
                     '/Users/squishy/Documents/GitHub/Squishy-Bot/GIFS/hit/stick-figures.gif'
                  ]
         hitGIF = random.choice(hitGIF)
+        #This part should give you this message if you use the command on yourself but it doesnt work with @mentions
+        #for now. Idk how to get that to work so for now you'll have to type your server nickname (case sensitive)
         if(message.author.display_name == receiver):
             await message.channel.send('You attacked yourself! Not the best life decision...')
         else:
             await message.channel.send('%s fucking attacked the shit out of %s!' %(message.author.display_name, receiver))
         await message.channel.send(file = discord.File(hitGIF))
-        
+    
+    #Hug command    
     if message.content.startswith("$hug"):
         receiver = message.content.split()[1]
         hugGIF = [
@@ -112,18 +121,22 @@ $swearcounter: Shows how many times this bot has caught someone saying a swear
                     '/Users/squishy/Documents/GitHub/Squishy-Bot/GIFS/hug/cat-hug.gif'
                  ]
         hugGIF = random.choice(hugGIF)
+        #This part should give you this message if you use the command on yourself but it doesnt work with @mentions
+        #for now. Idk how to get that to work so for now you'll have to type your server nickname (case sensitive)
         if(message.author.display_name == receiver):
             await message.channel.send('You hugged yourself! Self care is important :)')
         else:
             await message.channel.send('%s hugged %s!' %(message.author.display_name, receiver))
         await message.channel.send(file = discord.File(hugGIF))
-        
+     
+    #Swear counter command. Right now this isn't server or user specific. Idk how to keep track of certain users
+    #data yet   
     if message.content.startswith('$swearcounter'):
         await message.channel.send('We have said %d swears.' %(client.swearCounter))   
                         
                                    
         
-    #Admin commands
+    #Admin commands. Change the author id to your own to get it to work for you.
     if message.content.startswith('$changepresence'):    
         if message.author.id == 284351113984081922:
             game = discord.Game(message.content[15:])
@@ -137,7 +150,7 @@ $swearcounter: Shows how many times this bot has caught someone saying a swear
     pattern_re2 = re.compile(r'meme', re.IGNORECASE)
     pattern_re3 = re.compile(r'troll', re.IGNORECASE)
     pattern_re4 = re.compile(r'pepper pig', re.IGNORECASE)
-    #pattern_re5 = re.compile(r"im", re.IGNORECASE)
+    #pattern_re5 = re.compile(r"im", re.IGNORECASE) #(This command is broken, so it's commented until I fix it)
     pattern_re6 = re.compile(r"fuck", re.IGNORECASE)
     pattern_re7 = re.compile(r"shit", re.IGNORECASE)
     pattern_re8 = re.compile(r"bitch", re.IGNORECASE)
@@ -154,6 +167,7 @@ $swearcounter: Shows how many times this bot has caught someone saying a swear
          await message.channel.send(file=discord.File('/Users/squishy/Documents/GitHub/Squishy-Bot/Trollface.png'))
     if re.search(pattern_re4, message.content):
         await message.channel.send('https://youtu.be/M3t6kXOcxRc')
+    #'response' only displays the next word after 'I'm', not the entire message after.         
     #if re.search(pattern_re5, message.content):
     #    response = message.content.split()[1]
     #    await message.channel.send("Hi " + response + ", I'm Dad!")
@@ -167,6 +181,7 @@ $swearcounter: Shows how many times this bot has caught someone saying a swear
         ):
         client.swearCounter = client.swearCounter + 1
     
+    #Writes to the swearcounter file so it doesn't reset after the bot shuts down
     file = open("swears.txt", "w")
     file.write(str(client.swearCounter))
     file.close()
