@@ -104,7 +104,7 @@ $swearcounter: Shows how many times this bot has caught someone saying a swear
         await message.channel.send(file = discord.File(hugGIF))
         
     if message.content.startswith('$swearcounter'):
-        if message.author.id in client.swearCounter:
+        if ("%d" %message.author.id) in client.swearCounter.keys():
             await message.channel.send('You have said %d swears.' %(client.swearCounter["%d" %message.author.id]))   
         else:
             await message.channel.send("You have never said a swear! Wack...")            
