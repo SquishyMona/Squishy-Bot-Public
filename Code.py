@@ -13,6 +13,7 @@ import re
 import json
 import random
 from random import randint
+from discord import Member
 from discord.ext import commands
 
 
@@ -20,9 +21,15 @@ os.chdir('[your working directory here]')
 logging.basicConfig(level=logging.INFO)
 
 client = discord.Client()
-bot = commands.Bot(command_prefix = '$')
+bot = commands.Bot(command_prefix = '$', help_command = None)
 
 bot.Profiles = {}
+
+#Functions that will be used
+def saveProfiles():
+    with open('Profiles.json', 'w') as file:
+        json.dump(bot.Profiles, file)
+
 def createProfile(ctx):
     author = "%s" %ctx.author.id
     bot.Profiles[author] = {}
@@ -30,9 +37,26 @@ def createProfile(ctx):
     bot.Profiles[author]["swears"] = 0
     bot.Profiles[author]["level"] = 1
     bot.Profiles[author]["exp"] = 0
-    bot.Profiles[author]["isGay"] = 'Undetermined'
-    with open('Profiles.json', 'w') as file:
-        json.dump(bot.Profiles, file)
+    bot.Profiles[author]["sexuality"] = 'Undetermined'
+    bot.Profiles[author]["pronouns"] = 'Undetermined'
+    saveProfiles()
+
+async def levelingSystem(ctx):
+    if ctx.content.startswith('$'):
+        return
+    exp = bot.Profiles['%s' %ctx.author.id]['exp']
+    msgLen = len(ctx.content.split(' '))
+    bot.Profiles['%s' %ctx.author.id]['exp'] += msgLen
+    
+    exp = bot.Profiles['%s' %ctx.author.id]['exp']
+    level = bot.Profiles['%s' %ctx.author.id]['level']
+    expThreshold = (level * 5) + 5
+    if bot.Profiles['%s' %ctx.author.id]['exp'] >= expThreshold:
+        bot.Profiles['%s' %ctx.author.id]['level'] += 1
+        level = bot.Profiles['%s' %ctx.author.id]['level']
+        bot.Profiles['%s' %ctx.author.id]['exp'] = 0
+        if level % 5 == 0:
+            await ctx.channel.send('Congratulations, %s, you are now level **%d**!' %(ctx.author.display_name, level))
 
 with open("Profiles.json", "r") as file:
     bot.Profiles = json.load(file)
@@ -42,16 +66,19 @@ with open("Profiles.json", "r") as file:
 async def on_ready():
     print('Session started. User: {0.user}' .format(bot))
     
-    game = discord.Game('Squishy Simulator | $help to get started! | ver.0.1b')
+    game = discord.Game('Squishy Simulator | $help to get started! | ver.0.2b')
     await bot.change_presence(activity = game)
     
     #Lists emoji ID's
     #for emoji in client.emojis:
     #    print("Name: ", emoji.name + ",", "ID: ", emoji.id)
     
-#Listener for various messages that aren't commands.
+
 @bot.listen('on_message')
 async def on_message(message):
+    if message.author == bot.user:
+        return
+    
     #Defining trigger messages. Any message that contains these trigger words (or part of them)
     #will trigger its subsequent bot message 
     pattern_re = re.compile(r'pog', re.IGNORECASE)
@@ -80,14 +107,24 @@ async def on_message(message):
     #    await message.channel.send("Hi " + response + ", I'm Dad!")
     if(re.search(pattern_re6, message.content) or re.search(pattern_re7, message.content) or re.search(pattern_re8, message.content) or re.search(pattern_re9, message.content) or re.search(pattern_re10, message.content) or re.search(pattern_re11, message.content)):
         bot.Profiles["%s" %message.author.id]['swears'] += 1
-        with open('Profiles.json', 'w') as file:
-            json.dump(bot.Profiles, file)
+        saveProfiles()
+    
+    await levelingSystem(message)
+    
+    saveProfiles()
 
 #Admin Commands
+@bot.command(name = 'killbot')
+async def killbot(ctx):
+    if ctx.author.id == 829418215263436800 or ctx.author.id == 284351113984081922 or ctx.author.id == 335855055095726083:
+        await ctx.bot.logout()
+    else:
+        await ctx.send("Sorry! This is an admin-only command, so peasants like you can't use it! :) 💙 (If you are an admin and would like access to this command, please contact the bot host. Developers: If you'd like access to this command, you can add your User ID to line 136 of the source code.)")
+
 @bot.command(name = 'addprofilefield')
-async def addprofilefield(ctx, arg, arg2):
+async def addprofilefield(ctx, field, value):
     if ctx.author.id == 284351113984081922:
-        await ctx.send('This will add field **%s** with value **%s** to all user profiles. Continue? (y/n) (If any profiles already contain this field, they will be overwritten with value **%s**' %(arg, arg2, arg2))
+        await ctx.send('This will add field **%s** with value **%s** to all user profiles. Continue? (y/n) (If any profiles already contain this field, they will be overwritten with value **%s**)' %(field, value, value))
         def check(response):
             return (
                 response.channel == ctx.channel and 
@@ -102,15 +139,14 @@ async def addprofilefield(ctx, arg, arg2):
             await ctx.send('Process aborted.')
         else:
             for items in bot.Profiles:
-                bot.Profiles[items][arg] = arg2  
+                bot.Profiles[items][field] = value  
                 
-            with open('Profiles.json', 'w') as file:
-                json.dump(bot.Profiles, file)  
+            saveProfiles() 
                 
             await ctx.send('Process completed.')
         
     else:
-        await ctx.send("Sorry! This is an admin-only command, so peasants like you can't use it! :) 💙 (If you are an admin and would like access to this command, please contact the bot host. Developers: If you'd like to use this command, you can add your User ID to the 'if' statement directly following the async definition.)")
+        await ctx.send("Sorry! This is an admin-only command, so peasants like you can't use it! :) 💙 (If you are an admin and would like access to this command, please contact the bot host. Developers: If you'd like access to this command, you can add your User ID to line 136 of the source code.)")
         
 @bot.command(name = 'changepresence')
 async def changepresence(ctx, *, message):  
@@ -118,10 +154,25 @@ async def changepresence(ctx, *, message):
         game = discord.Game(message)
         await bot.change_presence(activity = game)
     else:
-        await ctx.send("Sorry! This is an admin-only command, so peasants like you can't use it! :) 💙 (If you are an admin and would like access to this command, please contact the bot host. Developers: If you'd like to use this command, you can add your User ID to the 'if' statement directly following the async definition.)")
-             
+        await ctx.send("Sorry! This is an admin-only command, so peasants like you can't use it! :) 💙 (If you are an admin and would like access to this command, please contact the bot host. Developers: If you'd like access to this command, you can add your User ID to line 136 of the source code.)")
     
 #Normal Commands
+@bot.command(name = 'help')
+async def help(ctx):
+    await ctx.send('''
+Hello, I'm Squishy Bot! I'm currently a work-in-progress, so if you notice any bugs, glitches, or anything else that looks like it probably shouldn't be happening, let me know! Here's a list of commands you can use:
+
+$hit, $pat, and $hug [name]: Does the specified action on another user. [name] can be plain text or an @mention!
+$hello: Sends a hello message
+$swearcounter: Shows how many times the bot has caught you saying a swear
+$profile: Lets you view your profile
+$editprofile [field][value]: Lets you edit a section of your profile. Note that some fields cannot be edited, such as your level.
+$gaydar: Allows you to use the GayDar
+$guessthenumber: A simple number guessing game...or is it?
+
+Looking for admin commands? Try $admin-commands
+''')
+
 @bot.command(name = 'hello')
 async def hello(ctx):
     await ctx.send('Hello!')
@@ -129,15 +180,17 @@ async def hello(ctx):
 @bot.command(name = 'admin-commands')
 async def admincommands(ctx):
     await ctx.send(
-        """Here's a list of admin-only commands. (Currently, they're restricted to only be used by Squishy. Role implementation will be added at a later time. Developers: If you'd like to use these commands, you can add your User ID to the 'if' statement directly following the async definitions of the various commands.)
+        """Here's a list of admin-only commands. (Currently, they're restricted to only be used by Squishy. Role implementation will be added at a later time. Developers: In the mean time, you can add your User ID into the source code at line 136 if you'd like to use these commands)
         
 $changepresence [string]: Changes the presence of the bot to whatever you write following the command.
-$addprofilefield [name]: Adds a new field called [name] to all user profiles
+$addprofilefield [field][value]: Adds a new field called [field] to all user profiles with value [value]. **Please note:** Attempting to add an already existing field will **overwrite said field with the specified value on all user profiles.** Please be careful when using this command, as such an action **cannot be undone.**
+$killbot: Shuts down the bot.
         """)
 
 @bot.command(name = 'pat')
 async def pat(ctx, arg):
     receiver = arg
+    print('DEBUG: reciever = %s' %receiver)
     patGIF = [
                 'GIFS/pat/sae_pat.gif', 
                 'GIFS/pat/big-hero6-baymax.gif',
@@ -196,8 +249,13 @@ async def swearcounter(ctx):
         await ctx.send("You have never said a swear! Wack...")  
 
 @bot.command(name = 'profile')
-async def profile(ctx):
-    author = '%s' %ctx.author.id
+async def profile(ctx, user: Member = None):
+    if user == None:
+        author = '%s' %ctx.author.id
+        profilePicture = ctx.author.avatar_url
+    else:
+        profilePicture = user.avatar_url
+        author = '%s' %user.id
     
     if author not in bot.Profiles.keys():
         createProfile(ctx)
@@ -205,30 +263,33 @@ async def profile(ctx):
     name = bot.Profiles[author]['name']
     level = bot.Profiles[author]['level']
     exp = bot.Profiles[author]['exp']
+    expThreshold = (level * 5) + 5
     swears = bot.Profiles[author]['swears']
-    isGay = bot.Profiles[author]['isGay']
-    profilePicture = ctx.author.avatar_url
+    sexuality = bot.Profiles[author]['sexuality']
+    pronouns = bot.Profiles[author]['pronouns']
+    
     embed = discord.Embed(title = name)
     embed.add_field(name = 'Level', value = level, inline = True)
-    embed.add_field(name = 'Experience', value = exp, inline = True)
+    embed.add_field(name = 'EXP To Next Level', value = expThreshold - exp, inline = True)
+    embed.add_field(name = 'Pronouns', value = pronouns, inline = False)
+    embed.add_field(name = 'Sexuality', value = sexuality)
     embed.add_field(name = 'Swears Said', value = swears, inline = False)
-    embed.add_field(name = 'Is Gay', value = isGay)
+    
     embed.set_thumbnail(url=profilePicture)
     embed.set_footer(text = "Command invoked by %s (ID: %s)" %(ctx.author.display_name, ctx.author.id))
     await ctx.send(embed = embed)
 
 @bot.command(name = 'editprofile')
-async def editprofile(ctx, field, value):
+async def editprofile(ctx, field, *, value):
     user = '%s' %ctx.author.id
-    if (field == 'level' or field == 'exp' or field == 'isGay' or field == 'swears') or (field not in bot.Profiles[user]):
+    if (field == 'level' or field == 'exp' or field == 'swears') or (field not in bot.Profiles[user]):
         await ctx.send("You've entered a field that either does not exist or cannot be edited.")
     elif (field in bot.Profiles[user]) or field == 'Name':
         bot.Profiles[user][field] = value
-        with open('Profiles.json', 'w') as file:
-            json.dump(bot.Profiles, file)
+        saveProfiles()
         await ctx.send('Changes completed! Run "$profile" to double check!')
     
-#The Gay Detector, aka the GayDar.
+
 @bot.command(name = 'gaydar')
 async def gaydar(ctx):
     gayPoints = 0
@@ -309,46 +370,38 @@ Question 1: Are you attracted to people of the same gender?''')
         
     if (gayPoints < 15):    
         await ctx.send('You have reached the end. Based on your answers, it has been determined that you are: **NOT GAY.**')
-        bot.Profiles["%s" %ctx.author.id]['isGay'] = 'No'
+        bot.Profiles["%s" %ctx.author.id]['sexuality'] = 'Straight'
     else:
         await ctx.send('You have reached the end. Based on your answers, it has been determined that you are: **GAY.**')
-        bot.Profiles["%s" %ctx.author.id]['isGay'] = 'Yes'
+        bot.Profiles["%s" %ctx.author.id]['sexuality'] = 'Gay'
     
-    with open('Profiles.json', 'w') as file:
-                json.dump(bot.Profiles, file)  
+    saveProfiles() 
     
     await ctx.send('This quiz determines if you are gay by tallying up **GAY POINTS.** You had **%d** total points.' %gayPoints)
 
-
+@bot.command(name = 'guessthenumber')
+async def guessthenumber(ctx):
+    number = ['69', '420']
+    answer = random.choice(number)
+    print(answer)
+    await ctx.send("Welcome to Guess The Number! Seems like a simple and boring game, right? WRONG!!! If you don't guess correctly, **you will be fucking banned from the server.** The stakes are high...are you willing to take the risk? (y/n)")
+    def check(response):
+        return response.author == ctx.author and response.channel == ctx.channel and (response.content == 'y' or response.content == 'n')
     
-#Unimplimented commands from old system (these don't run right now.)
-@client.event
-async def on_message(message):
-
-    if message.content.startswith('$view-profile'):
-        profile = message.content[9:]
-        for keys in client.Profiles.keys():
-            print('DEBUG: Key = %s' %keys)
-            if client.Profiles[keys]["name"] == profile:
-                profile = keys
-                print('DEBUG: "profile" = %s' %profile)
-            else:
-                await message.channel.send("User not found. Make sure you typed their user name **exactly as it appears on their profile.**")
-                break
-            
-        name = client.Profiles[profile]['name']
-        level = client.Profiles[profile]['level']
-        exp = client.Profiles[profile]['exp']
-        swears = client.Profiles[profile]['swears']
-        profilePicture = profile.avatar_url
-        embed = discord.Embed(title = name)
-        embed.add_field(name = 'Level', value = level, inline = True)
-        embed.add_field(name = 'Experience', value = exp, inline = True)
-        embed.add_field(name = 'Swears Said', value = swears, inline = False)
-        embed.set_thumbnail(url=profilePicture)
-        embed.set_footer(text = "Command invoked by %s (ID: %s)" %(message.author.display_name, message.author.id))
-        await message.channel.send(embed = embed)
-            
+    response = await bot.wait_for('message', check=check)
+    if response.content == 'n':
+        await ctx.send('Understandable.')
+        return
+    await ctx.send('Then let us continue...you must guess the number I am thinking of. You have two choices: **69** or **420**. Choose wisely...please make your guess.')
+    def check(response):
+        return response.author == ctx.author and response.channel == ctx.channel and (response.content == '69' or response.content == '420')
+    response = await bot.wait_for('message', check=check)
+    if response.content == answer:
+        await ctx.send('You have answered correctly! Congratulations, you have been spared...for now.')
+    else:
+        await ctx.send('You have answered...incorrectly...punishment incoming.')
+        member = ctx.author
+        await member.ban(reason = 'Guessed incorrectly...')
 
 #Sends program information to Discord to be run
 bot.run('[your key here]')
